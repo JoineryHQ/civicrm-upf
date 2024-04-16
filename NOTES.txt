@@ -1,0 +1,313 @@
+4.7.32:
+    $preUpgradeMessage .= '<p>' . ts('A new %1 permission has been added. It is not granted by default. If you use SMS, you may wish to review your permissions.', [1 => 'send SMS']) . '</p>';
+
+if ($rev == '5.20.alpha1') {
+  if (CRM_Core_DAO::checkTableExists('civicrm_persistent') && CRM_Core_DAO::checkTableHasData('civicrm_persistent')) {
+    $preUpgradeMessage .= '<br/>' . ts("WARNING: The table \"<code>civicrm_persistent</code>\" is flagged for removal because all official records show it being unused. However, the upgrader has detected data in this copy of \"<code>civicrm_persistent</code>\". Please <a href='%1' target='_blank'>report</a> anything you can about the usage of this table. In the mean-time, the data will be preserved.", [
+      1 => 'https://civicrm.org/bug-reporting',
+    ]);
+  }
+
+if ($rev == '5.3.0') {
+  $params = [
+    1 => 'edit user-driven message templates',
+    2 => 'edit system workflow message templates',
+    3 => 'edit message templates',
+  ];
+  $preUpgradeMessage .= '<p>' . ts('New granular permissions called %1 and %2 have been added for %3 permission. These permissions help to limit user access per template', $params) . '</p>';
+}
+
+if ($rev == '5.4.alpha1') {
+  $postUpgradeMessage .= '<p>' . ts('A new permission, "%1", has been added. It is not granted by default. If your users create reports, you may wish to review their permissions.', [1 => ts('save Report Criteria')]) . '</p>';
+}
+
+if ($rev == '5.9.0') {
+  $args = [
+    1 => ts('Enable multiple bulk email address for a contact'),
+    2 => ts('Email on Hold'),
+  ];
+  $postUpgradeMessage .= '<p>' . ts('If the setting "%1" is enabled, you should update any smart groups based on the "%2" field.', $args) . '</p>' .
+    '<p>' . ts('If you were previously on version 5.8 and altered the WYSIWYG editor setting, you should visit the <a %1>Display Preferences</a> page and re-save the WYSIWYG editor setting.', [1 => 'href="' . CRM_Utils_System::url('civicrm/admin/setting/preferences/display', 'reset=1') . '"']) . '</p>' .
+    '<p>' . ts('CiviCRM v5.9+ adds a new search preference for certain custom-fields ("Money", "Integer", or "Float" data displayed as "Select" or "Radio" fields). For continuity, any old fields have been set to continue the old user-experience. However, you may want to review these settings. (You should especially review if this site used v5.9-alpha or v5.9-beta.)') . '</p>';
+}
+
+if ($rev == '5.13.alpha1' && CRM_Core_Component::isEnabled('CiviCampaign')) {
+  $postUpgradeMessage .= '<br /><br />' . ts("If you have created a report based on the Mailing Summary Report template and it outputs or filters on campaigns, You will need to go back to that report and re-save the report after selecting and or setting the campaign filters up again");
+}
+
+
+if ($rev == '5.21.alpha1') {
+  // Find any option groups that were not converted during the upgrade.
+  $notConverted = [];
+  $optionGroups = \Civi\Api4\OptionGroup::get(FALSE)->execute();
+  foreach ($optionGroups as $optionGroup) {
+    $trimmedName = trim($optionGroup['name']);
+    if (strpos($trimmedName, ' ') !== FALSE) {
+      $notConverted[] = $optionGroup['title'];
+    }
+  }
+  if (count($notConverted)) {
+    $postUpgradeMessage .= '<br /><br />' . ts("The Following option Groups have not been converted due to there being already another option group with the same name in the database") . "<ul><li>" . implode('</li><li>', $notConverted) . "</li></ul>";
+  }
+}
+
+if ($rev == '5.23.alpha1' && version_compare($currentVer, '4.7', '>=')) {
+  if ($this->hasConfigBackendData()) {
+    $preUpgradeMessage .= '<br/>' . ts("WARNING: The column \"<code>civicrm_domain.config_backend</code>\" is <a href='%2'>flagged for removal</a>. However, the upgrader has detected data in this copy of \"<code>civicrm_domain.config_backend</code>\". Please <a href='%1' target='_blank'>report</a> anything you can about the usage of this column. In the mean-time, the data will be preserved.", [
+      1 => 'https://civicrm.org/bug-reporting',
+      2 => 'https://lab.civicrm.org/dev/core/issues/1387',
+    ]);
+  }
+}
+
+if ($rev == '5.26.alpha1') {
+  $postUpgradeMessage .= '<br/>' . ts("WARNING: CiviCRM 5.26 and later changes how front-end CiviCRM URLs are formed in WordPress.  Please <a href='%1' target='_blank'>read this blog post before upgrading</a> . You may need to update settings at your payment Processor for recurring payments. If you have an external service that sends callback messages to CiviCRM, you may need to update the settings at the external service to use the new URL format.", [
+    1 => 'https://civicrm.org/blog/kcristiano/civicrm-526-and-wordpress-important-notice',
+  ]);
+}
+
+if ($rev == '5.27.alpha1') {
+  $preUpgradeMessage .= '<p>' . ts('Starting with version 5.28.0, CiviCRM will require the PHP Internationalization extension (PHP-Intl). In preparation for this, the system check will show a warning beginning in 5.27.0 if your site lacks this extension.') . '</p>';
+}
+
+
+if ($rev == '5.28.alpha1') {
+ return '<p>' . ts('Starting with version 5.29.0, CiviCRM on WordPress may make a subtle change in the calculation of <code>[civicrm.files]</code>. To ensure a smooth upgrade, please review the following table. All paths and URLs should appear the same. If there is <strong><em>any</em></strong> discrepancy, then consult <a %1>the upgrade documentation</a>.', [
+  1 => 'href="https://docs.civicrm.org/sysadmin/en/latest/upgrade/version-specific/#civicrm-5.29" target="_blank"',
+  2 => '...wp-content/uploads/civicrm',
+]) . '</p>' . $table;
+}
+
+
+if ($rev == '5.29.beta1') {
+  if (CIVICRM_UF === 'Drupal8') {
+    $preUpgradeMessage .= '<p>' . ts('<em>Pre-announcement for upcoming version 5.30</em>: If your composer configuration or composer.json does not enable patching, you MUST do that BEFORE running composer to update your files to version 5.30. Either by using `composer config \'extra.enable-patching\' true`, or updating the top level composer.json\'s extra section with `"enable-patching": true`. See %1 for details.', [1 => '<a href="' . CRM_Utils_System::docURL2('installation/drupal8', TRUE) . '">Drupal 8 installation guide</a>']) . '</p>';
+  }
+}
+
+if ($rev === '5.34.alpha1') {
+  $xoauth2Value = CRM_Core_PseudoConstant::getKey('CRM_Core_BAO_MailSettings', 'protocol', 'IMAP_XOAUTH2');
+  if (!empty($xoauth2Value)) {
+    if ($this->isXOAUTH2InUse($xoauth2Value)) {
+      $preUpgradeMessage .= '<p>' . strtr(
+        'This system has enabled "IMAP_XOAUTH2" which was experimentally declared in CiviCRM v5.24. CiviCRM v5.33+ includes a supported replacement ("oauth-client"), and the experimental "IMAP_XOAUTH2" should be removed. Please visit %1 to discuss.',
+        [
+          '%1' => '<a target="_blank" href="https://lab.civicrm.org/dev/core/-/issues/2264">dev/core#2264</a>',
+        ]
+      ) . '</p>';
+    }
+  }
+  $prose = ts('The SMTP password (%1) was previously stored in the database. It has unexpected content which cannot be migrated automatically. However, it appears to be inactive, so the upgrader will drop this value.', [
+    1 => "setting#" . $setting['id'],
+  ]);
+
+  $prose = ts('The SMTP password (%1) has unusual content that cannot be stored as plain-text. It may be unreadable due to a previous misconfiguration, or it may rely on an unclear character-set. Your options are:', [
+    1 => "setting#" . $setting['id'],
+  ]);
+  $option_1 = ts('<a href="%1" target="_blank">Setup CIVICRM_CRED_KEYS</a> before upgrading. This warning will go away, and the current SMTP password will ultimately be preserved during upgrade.', [
+    1 => 'https://docs.civicrm.org/sysadmin/en/latest/upgrade/version-specific/#smtp-password',
+  ]);
+  $option_2 = ts('Proceed with upgrading in the current configuration. The SMTP password will be lost, but you may re-configure it after upgrade.');
+
+}
+
+
+if ($rev === '5.36.alpha1') {
+  if (empty(CRM_Utils_Constant::value('CIVICRM_SIGN_KEYS'))) {
+    // NOTE: We don't re-encrypt automatically because the old "civicrm.settings.php" lacks a good key, and we don't keep the old encryption because the format is ambiguous.
+    // The admin may forget to re-enable. That's OK -- this only affects 1 field, this is a secondary defense, and (in the future) we can remind the admin via status-checks.
+    $preUpgradeMessage .= '<p>' . ts('CiviCRM v5.36 introduces a new configuration option to support digital signatures. You may <a href="%1" target="_blank">setup CIVICRM_SIGN_KEYS</a> before or after upgrading. The option is not critical in v5.36, but it may be required for extensions or future upgrades.', [
+      1 => 'https://docs.civicrm.org/sysadmin/en/latest/upgrade/version-specific/#sign-key',
+    ]) . '</p>';
+  }
+}
+
+if ($rev === '5.37.alpha1') {
+  $preUpgradeMessage .= '<p>' . ts('Some mail-merge tokens may display differently when used with Scheduled Reminders, Mosaico templates, or PDF letters. For details, see <a href="%1" target="_blank">upgrade notes</a>.',
+      [1 => 'https://docs.civicrm.org/sysadmin/en/latest/upgrade/version-specific/#token-format']) . '</p>';
+}
+
+if ($rev === '5.41.alpha1') {
+  $postUpgradeMessage .= '<br /><br />' . ts('A token has been updated in the %1 template. Check the system checks page to see if any action is required.', [1 => 'invoice']);
+}
+
+if ($rev === '5.43.alpha1' && CRM_Core_Component::isEnabled('CiviCase')) {
+  $preUpgradeMessage .= '<p>' . ts('Minor changes have been made to how the tokens to render case.is_deleted, case.created_date and case.modified_date. See https://docs.civicrm.org/sysadmin/en/latest/upgrade/version-specific/ for more') . '</p>';
+}
+
+if ($rev === '5.47.alpha1') {
+  $count = CRM_Core_DAO::singleValueQuery('SELECT count(*) FROM civicrm_contact WHERE preferred_mail_format != "Both"');
+  if ($count) {
+    $preUpgradeMessage .= '<p>' . ts('The contact field preferred mail format is being phased out. Modern email clients can handle receiving both formats so CiviCRM is moving towards always sending both and the field will be incrementally removed from the UI.')
+    . ' <a href="https://lab.civicrm.org/dev/core/-/issues/2866">' . ts('See the issue for more detail') . '</a></p>';
+  }
+  // Check for custom groups with duplicate names
+  $dupes = CRM_Core_DAO::singleValueQuery('SELECT COUNT(g1.id) FROM civicrm_custom_group g1, civicrm_custom_group g2 WHERE g1.name = g2.name AND g1.id > g2.id');
+  if ($dupes) {
+    $preUpgradeMessage .= '<p>' .
+      ts('Your system has custom field groups with duplicate internal names. To ensure data integrity, the internal names will be automatically changed; user-facing titles will not be affected. Please review any custom code you may be using which relies on custom field group names.') .
+      '</p>';
+  }
+}
+
+if ($rev === '5.48.beta2') {
+  $timezoneStats = $this->getTimezoneStats();
+  return '<div><span>' . ts('CiviEvent Timezone Rollback') . '</span><ul><li>'
+    . ts('CiviEvent v5.47.0 briefly introduced new timezone functionality. This will be removed, and times will be converted back to their old format.')
+    . '</li><li>'
+    . ts('Unfortunately, <em>CiviEvent times may be inaccurate</em>. To prevent or fix inaccuracies, please review <a %1>CiviEvent v5.47 Timezone Notice</a>.', [
+      1 => 'target="_blank" href="https://civicrm.org/redirect/event-timezone-5.47"',
+    ])
+    . '</li><li>'
+    . ts('The conversion will be performed with your active timezone (<strong><code>%1</code></strong>, <strong><code>%2</code></strong>).', [
+      1 => CRM_Core_Config::singleton()->userSystem->getTimeZoneString(),
+      2 => CRM_Core_Config::singleton()->userSystem->getTimeZoneOffset(),
+    ])
+    . '</li><li>'
+    . ts('The database has %1 events which all use the same timezone (<strong><code>%2</code></strong>).', [
+      1 => array_sum(array_column($timezoneStats, 'count')),
+      2 => $timezoneStats[0]['name'],
+      3 => count($timezoneStats),
+      4 => implode(', ', array_map(
+        function($stat) {
+          return sprintf('<strong><code>%s</code></strong> [%dx]', htmlentities($stat['name']), $stat['count']);
+        },
+        $timezoneStats
+      )),
+      'plural' => 'The database has %1 events with %3 timezones (%4).',
+      'count' => count($timezoneStats),
+    ])
+    . '</li></ul></div>';
+
+  return '<div><span>' . ts('CiviEvent Timezones') . '</span><ul><li>' . ts('Please check your CiviEvents for the correct time. <a %1>(Learn more...)</a>', [1 => 'target="_blank" href="https://civicrm.org/redirect/event-timezone-5.47"']) . '</li></ul></div>';
+
+}
+
+if ($rev == '5.49.2' && (version_compare(CRM_Core_BAO_Domain::version(), '5.49.beta1', '>='))) {
+    $preUpgradeMessage .= "<p>" . ts('This site previously executed an early version of 5.49, which may have incorrectly modified some scheduled reminders. After upgrading, review these reminders (<code>%1</code>). <a %2>(Learn more...)</a>', [
+    1 => '#' . $suspectRecords,
+    2 => 'target="blank" href="https://civicrm.org/redirect/reminders-5.49"',
+  ]) . "</p>";
+}
+
+if ($rev === '5.53.alpha1') {
+  $postUpgradeMessage .= '<div class="messages warning"><p>' . ts("WARNING: CiviCRM has changed the meaning of the date format specifier %1 when using CRM_Utils_Date::customFormat or {crmDate}. It was identical to %2 and the change will help compatibility with php 8.1.", [
+    1 => '%A',
+    2 => '%P',
+  ]) . '</p>';
+  $usagesInTemplates = self::getTemplatesUsingPercentA();
+  if (!empty($usagesInTemplates)) {
+    $postUpgradeMessage .= '<p>' . ts("The following <a %2>message templates</a> appear to be using the %1 specifier. You will need to manually review and update them to use %3 instead.", [
+      1 => '%A',
+      2 => 'href="' . CRM_Utils_System::url('civicrm/admin/messageTemplates', ['reset' => 1], TRUE) . '" target="_blank"',
+      3 => '%P',
+    ]) . '</p>';
+    $postUpgradeMessage .= '<ul>';
+    foreach ($usagesInTemplates as $id => $title) {
+      $link = CRM_Utils_System::url('civicrm/admin/messageTemplates/add', ['action' => 'update', 'reset' => 1, 'id' => $id], TRUE);
+      $postUpgradeMessage .= "<li><a href='{$link}' target='_blank'>" . htmlspecialchars($title) . '</a></li>';
+    }
+    $postUpgradeMessage .= '</ul></p>';
+  }
+  $postUpgradeMessage .= '<p>' . ts("Your <a %1>Date Format</a> settings have been automatically updated.", [
+    1 => 'href="' . CRM_Utils_System::url('civicrm/admin/setting/date', ['reset' => 1], TRUE) . '" target="_blank"',
+  ]) . '</p>';
+  $postUpgradeMessage .= '</div>';
+}
+
+5.56.alpha1:
+    $message = ts('When loading extensions, CiviCRM searches the filesystem. In v5.56+, the default search is more constrained. This improves performance, but some extensions (%1) will become invisible. To make these visible, you should either move the source-code or edit <code>civicrm.settings.php</code>. For example, you may add this line:', [
+
+
+5.57.alpha1:
+        $preUpgradeMessage .= '<p>' . ts('Your database contains CiviCase activity revisions which are deprecated and will begin to appear as duplicates in SearchKit/api4/etc.<ul><li>For further instructions see this <a %1>Lab Snippet</a>.</li></ul>', [1 => $docAnchor]) . '</p>';
+        $preUpgradeMessage .= '<p>' . ts('The activity table <strong>will not update automatically</strong> because it contains too many records. You will need to apply a <strong>manual update</strong>. Please read about <a %1>how to clean data from the defunct "Embedded Activity Revisions" setting</a>.', [1 => $docAnchor]) . '</p>';
+
+
+if ($rev === '5.60.alpha1') {
+  $postUpgradeMessage .= '<p>' . ts('You can now choose whether to use Smarty in Scheduled Reminders at <em>Administer >> CiviMail >> CiviMail Component Settings</em>. The setting is disabled by default on new installations but we have enabled it during this upgrade to preserve the existing behavior. More information <a %1>in this lab ticket</a>.', [1 => 'href="https://lab.civicrm.org/dev/core/-/issues/4100" target="_blank"']) . '<p>';
+}
+
+if ($rev === '5.61.alpha1' && CRM_Core_DAO::singleValueQuery('SELECT id FROM civicrm_contribution_recur LIMIT 1')) {
+  $documentationUrl = 'https://docs.civicrm.org/dev/en/latest/financial/recurring-contributions/';
+  $documentationAnchor = 'target="_blank" href="' . htmlentities($documentationUrl) . '"';
+  $extensionUrl = 'https://docs.civicrm.org/dev/en/latest/financial/recurring-contributions/';
+  $extensionAnchor = 'target="_blank" href="' . htmlentities($extensionUrl) . '"';
+
+  $preUpgradeMessage .= '<p>' .
+    ts('This release contains a change to the behaviour of recurring contributions under some edge-case circumstances.')
+    . ' ' . ts('Since 5.49 the amount and currency on the recurring contribution record changed when the amount of any contribution against it was changed, indicating a change in future intent.')
+    . ' ' . ts('It is generally not possible to edit the amount for contributions linked to recurring contributions so for most sites this would never occur anyway.')
+    . ' ' . ts('If you still want this behaviour you should install the <a %1>Recur future amounts extension</a>', [1 => $extensionAnchor])
+    . ' ' . ts('Please <a %1>read about recurring contribution templates</a> for more information', [1 => $documentationAnchor])
+    . '</p>';
+
+  if (defined('CIVICRM_UF') && CIVICRM_UF === 'Drupal8') {
+    $postUpgradeMessage .= '<p>' . ts('You must do a one-time clear of Drupal caches now before visiting CiviCRM pages to rebuild the menu routes to avoid fatal errors. <a %1>Read more</a>.', [1 => 'href="https://civicrm.org/redirect/drupal-5.61" target="_blank"']) . '</p>';
+  }
+
+}
+
+
+
+if ($rev == '5.62.alpha1') {
+  $rawComponentLists = static::findEffectiveComponentsByDomain()->execute()->fetchMap('value', 'value');
+  $distinctComponentLists = array_unique(array_map(function(?string $serializedList) {
+    $list = \CRM_Utils_String::unserialize($serializedList);
+    sort($list);
+    return implode(',', $list);
+  }, $rawComponentLists));
+  if (count($distinctComponentLists) > 1) {
+    $message = ts('This site has multiple "Domains". The list of active "Components" is being consolidated across all "Domains". If you need different behavior in each "Domain", then consider updating the roles or permissions.');
+    // If you're investigating this - then maybe you should implement hook_permission_check() to dynamically adjust feature visibility?
+    // See also: https://lab.civicrm.org/dev/core/-/issues/3961
+    $preUpgradeMessage .= "<p>{$message}</p>";
+  }
+
+  if (defined('CIVICRM_SETTINGS_PATH') && CIVICRM_SETTINGS_PATH) {
+    $contents = file_get_contents(CIVICRM_SETTINGS_PATH);
+    if (strpos($contents, 'auto_detect_line_endings') !== FALSE) {
+      $preUpgradeMessage .= '<p>' . ts('Your civicrm.settings.php file contains a line to set the php variable `auto_detect_line_endings`. It is deprecated and the line should be removed from the file.') . '</p>';
+    }
+  }
+}
+elseif ($rev == '5.62.beta1') {
+  // Copied from FiveFiftySeven, only display if we upgrading from version after 5.57.alpha1
+  if (version_compare($currentVer, '5.57.alpha1', '>')) {
+    $docUrl = 'https://civicrm.org/redirect/activities-5.57';
+    $docAnchor = 'target="_blank" href="' . htmlentities($docUrl) . '"';
+    if (CRM_Core_DAO::singleValueQuery('SELECT COUNT(id) FROM civicrm_activity WHERE is_current_revision = 0')) {
+      // Text copied from FiveFifty Seven
+      $preUpgradeMessage .= '<p>' . ts('Your database contains CiviCase activity revisions which are deprecated and will begin to appear as duplicates in SearchKit/api4/etc.<ul><li>For further instructions see this <a %1>Lab Snippet</a>.</li></ul>', [1 => $docAnchor]) . '</p>';
+      // New text explaination as to why we show this again.
+      $preUpgradeMessage .= '<p>' . ts('Note: You might have followed these steps already but unfortunately a previous upgrade which started ignoring the setting to create CiviCase Activity revisions failed to account for all the places this functionality existed. This means that either new Revisions have been added since you removed them, or not all were removed.') . '</p>';
+    }
+  }
+}
+
+
+if ($rev === '5.64.beta1') {
+  // The ON DELETE constraint drop+recreate can be slow, so tell people what to do at their convenience if db is large.
+  if (CRM_Core_DAO::singleValueQuery('SELECT MAX(id) FROM civicrm_activity') >= self::ACTIVITY_THRESHOLD) {
+    $preUpgradeMessage .= '<p>' . ts('<strong>ACTION REQUIRED</strong>: You will need to apply a <strong>manual update</strong> because your civicrm_activity table is large and the update will run slowly. Please read about <a %1>how to apply this update manually</a>.', [1 => 'target="_blank" href="https://civicrm.org/redirect/activities-parentid-cascade"']) . '</p>';
+  }
+}
+
+if ($rev === '5.66.alpha1') {
+  $preUpgradeMessage .= '<p>' . ts('If your site uses custom code to inject tracking fields into messages, it may need updating. See <a %1>this issue for details</a>.',
+      [1 => 'href="https://github.com/civicrm/civicrm-core/pull/27233" target="_blank"']) . '</p>';
+}
+
+if ($rev === '5.67.alpha1') {
+  $customPrivacy = CRM_Core_DAO::executeQuery('
+    SELECT value, label
+    FROM civicrm_option_value
+    WHERE is_active = 1 AND value NOT IN ("0", "1")
+      AND option_group_id = (SELECT id FROM civicrm_option_group WHERE name = "note_privacy")')
+    ->fetchMap('value', 'label');
+  if ($customPrivacy) {
+    $preUpgradeMessage .= '<p>'
+      . ts('This site has custom note privacy options (%1) which may not work correctly after the upgrade, due to the deprecation of hook_civicrm_notePrivacy. If you are using this hook, see <a %2>developer documentation on updating your code</a>.', [1 => '"' . implode('", "', $customPrivacy) . '"', 2 => 'href="https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_notePrivacy/" target="_blank"']) .
+      '</p>';
+  }
+}
